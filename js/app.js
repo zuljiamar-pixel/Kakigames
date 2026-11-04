@@ -5,6 +5,10 @@
   const DATA = window.KG_DATA;
   const app = document.getElementById('app');
 
+  /* Läuft die App eingebettet (z. B. als Vorschau-Link)? Dann ohne Browser-Verlauf und ohne Installations-Hinweis. */
+  let IN_FRAME = false;
+  try { IN_FRAME = window.self !== window.top; } catch (e) { IN_FRAME = true; }
+
   /* ================================================================
    * Speicher
    * ================================================================ */
@@ -153,10 +157,11 @@
   function acts(map) { currentActs = map; }
 
   function ensurePushed() {
-    if (!pushed) {
+    if (pushed || IN_FRAME) return;
+    try {
       history.pushState({ kg: true }, '');
       pushed = true;
-    }
+    } catch (e) { /* ohne Verlauf weiter */ }
   }
 
   function render(html, { theme = '', back = null } = {}) {
@@ -330,7 +335,7 @@
     return `
       <div class="player-editor">
         <form class="add-player" autocomplete="off">
-          <input type="text" maxlength="18" placeholder="Name eingeben …" enterkeyhint="done" aria-label="Name eines Spielers">
+          <input type="text" id="player-name" maxlength="18" placeholder="Name eingeben …" enterkeyhint="done" aria-label="Name eines Spielers">
           <button type="submit" class="add-btn" aria-label="Spieler hinzufügen">+</button>
         </form>
         <ul class="player-list" data-ref="plist"></ul>
@@ -414,7 +419,7 @@
   const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   function drawInstall(box) {
-    if (isStandalone() || store.get('installDismissed', false)) { box.hidden = true; return; }
+    if (IN_FRAME || isStandalone() || store.get('installDismissed', false)) { box.hidden = true; return; }
     if (deferredInstall) {
       box.innerHTML = `<span>📲 Hol dir KakiGames als App auf den Homescreen!</span>
         <button class="pill" data-act="install">Installieren</button>`;
@@ -616,7 +621,7 @@
         const text = await openModal({
           title: '✏️ Eigene Wörter',
           html: `<p class="modal-sub">Ein Wort pro Zeile. Optional mit Tipp für den Imposter:<br><code>Wort: Tipp</code></p>
-                 <textarea class="textarea" rows="8" placeholder="Pizza: Italien&#10;Lehrer Müller: Schule&#10;Unser Urlaub 2024">${esc(s.custom)}</textarea>`,
+                 <textarea class="textarea" id="custom-words" rows="8" placeholder="Pizza: Italien&#10;Lehrer Müller: Schule&#10;Unser Urlaub 2024">${esc(s.custom)}</textarea>`,
           actions: [{ label: 'Abbrechen', value: null }, { label: 'Speichern', primary: true, value: w => w.querySelector('textarea').value }],
           onMount: w => setTimeout(() => w.querySelector('textarea').focus(), 250)
         });

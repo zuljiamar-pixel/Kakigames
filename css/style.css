@@ -71,7 +71,9 @@ h1, h2, h3, p { margin: 0; }
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px 0;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
   animation: screen-in 0.28s ease-out both;
 }
 @keyframes screen-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
